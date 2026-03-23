@@ -1,9 +1,13 @@
 __pycache__/
 *.pyc
 .venv/
+venv/
 .env
 db.sqlite3
 *.log
 media/
 staticfiles/
 .DS_Store
+.idea/
+*.sqlite3
+static/admin/
