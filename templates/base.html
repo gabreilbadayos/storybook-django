@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Magic Storyland - Interactive flipbook stories for children with read-aloud and moral lessons">
+    <title>{% block title %}Magic Storyland - Interactive Stories for Kids{% endblock %}</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    
+    {% block extra_css %}{% endblock %}
+    
+    <style>
+        .floating-element {
+            position: fixed;
+            pointer-events: none;
+            z-index: 9999;
+            animation: float-up 8s linear infinite;
+            opacity: 0.6;
+        }
+        
+        @keyframes float-up {
+            0% {
+                transform: translateY(100vh) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.6;
+            }
+            90% {
+                opacity: 0.6;
+            }
+            100% {
+                transform: translateY(-100px) rotate(360deg);
+                opacity: 0;
+            }
+        }
+        
+        .sparkle {
+            position: fixed;
+            width: 20px;
+            height: 20px;
+            pointer-events: none;
+            z-index: 10000;
+            animation: sparkle-anim 0.6s ease-out forwards;
+        }
+        
+        @keyframes sparkle-anim {
+            0% {
+                transform: scale(0) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1.5) rotate(180deg);
+                opacity: 0;
+            }
+        }
+        
+        /* Night Mode Styles */
+        body.night-mode {
+            background: linear-gradient(180deg, #0f0c29 0%, #302b63 50%, #24243e 100%) !important;
+            color: #e0e0e0 !important;
+            min-height: 100vh;
+        }
+        
+        body.night-mode .card {
+            background: rgba(30, 30, 60, 0.9) !important;
+            border: 1px solid #4a4a8a !important;
+            color: #e0e0e0 !important;
+        }
+        
+        body.night-mode .card-title {
+            color: #e0e0e0 !important;
+        }
+        
+        body.night-mode .card-text {
+            color: #b0b0b0 !important;
+        }
+        
+        body.night-mode .btn-primary {
+            background: #5a4fcf !important;
+            border-color: #5a4fcf !important;
+        }
+        
+        body.night-mode .form-control {
+            background: rgba(30, 30, 60, 0.9) !important;
+            border: 1px solid #4a4a8a !important;
+            color: #e0e0e0 !important;
+        }
+        
+        body.night-mode .form-control:focus {
+            background: rgba(40, 40, 80, 0.9) !important;
+            border-color: #6a5fdf !important;
+            color: #e0e0e0 !important;
+        }
+        
+        body.night-mode .dropdown-menu {
+            background: rgba(30, 30, 60, 0.95) !important;
+            border: 1px solid #4a4a8a !important;
+        }
+        
+        body.night-mode .dropdown-item {
+            color: #e0e0e0 !important;
+        }
+        
+        body.night-mode .dropdown-item:hover {
+            background: rgba(90, 79, 207, 0.3) !important;
+            color: #fff !important;
+        }
+        
+        body.night-mode footer {
+            background: linear-gradient(135deg, #1a1a2e 0%, #0f0f1a 100%) !important;
+        }
+        
+        body.night-mode .text-muted {
+            color: #888 !important;
+        }
+        
+        body.night-mode .alert {
+            background: rgba(30, 30, 60, 0.9) !important;
+            border: 1px solid #4a4a8a !important;
+            color: #e0e0e0 !important;
+        }
+        
+        body.night-mode .modal-content {
+            background: rgba(30, 30, 60, 0.95) !important;
+            border: 1px solid #4a4a8a !important;
+            color: #e0e0e0 !important;
+        }
+        
+        body.night-mode h1, body.night-mode h2, body.night-mode h3, 
+        body.night-mode h4, body.night-mode h5, body.night-mode h6 {
+            color: #e0e0e0 !important;
+        }
+        
+        body.night-mode .nav-link {
+            color: rgba(255, 255, 255, 0.8) !important;
+        }
+        
+        body.night-mode .navbar-brand {
+            color: #fff !important;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top" style="background: linear-gradient(90deg, #6D28D9, #7C3AED, #8B5CF6) !important; background-color: #6D28D9 !important;">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'story-list' %}">
+                <i class="fas fa-hat-wizard me-2"></i>
+                <span class="brand-text">Magic Storyland</span>
+            </a>
+            
+            <!-- Mobile Toggle Button -->
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'story-list' %}active{% endif %}" href="{% url 'story-list' %}">
+                            <i class="fas fa-home me-1"></i> Home
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'about' %}active{% endif %}" href="{% url 'about' %}">
+                            <i class="fas fa-info-circle me-1"></i> About
+                        </a>
+                    </li>
+                    
+                    <li class="nav-item">
+                        <button class="btn nav-link" id="themeToggle" title="Toggle Night Mode">
+                            <i class="fas fa-moon"></i>
+                        </button>
+                    </li>
+                    
+                    {% if user.is_authenticated %}
+                        {% if user.is_superuser %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'story-create' %}">
+                                    <i class="fas fa-plus-circle me-1"></i> Upload Story
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="/admin/" target="_blank">
+                                    <i class="fas fa-cog me-1"></i> Admin
+                                </a>
+                            </li>
+                        {% endif %}
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-user-circle me-1"></i> {{ user.username }}
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                                <li><span class="dropdown-item-text text-muted">{{ user.email }}</span></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <form method="post" action="{% url 'logout' %}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="dropdown-item">
+                                            <i class="fas fa-sign-out-alt me-2"></i>Logout
+                                        </button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'login' %}">
+                                <i class="fas fa-sign-in-alt me-1"></i> Login
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Messages -->
+    {% if messages %}
+        <div class="container mt-3">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+    
+    <!-- Main Content -->
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+    
+    <!-- Footer -->
+    <footer class="text-white py-5 mt-5">
+        <div class="container" style="background: linear-gradient(135deg, #2d3436 0%, #1e272e 100%); border-radius: 30px 30px 0 0; padding: 40px;">
+            <div class="row">
+                <div class="col-md-6 mb-4 mb-md-0">
+                    <h4><i class="fas fa-hat-wizard me-2 text-warning"></i>Magic Storyland</h4>
+                    <p class="text-light mb-0">Where every story becomes an amazing adventure! ✨</p>
+                </div>
+                <div class="col-md-3">
+                    <h6 class="text-warning">Quick Links</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="{% url 'story-list' %}" class="text-light text-decoration-none"><i class="fas fa-book me-2"></i>All Stories</a></li>
+                        <li><a href="{% url 'about' %}" class="text-light text-decoration-none"><i class="fas fa-star me-2"></i>About Us</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3">
+                    <h6 class="text-warning">Categories</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="?category=fables" class="text-light text-decoration-none">🐰 Fables</a></li>
+                        <li><a href="?category=adventure" class="text-light text-decoration-none">🚀 Adventure</a></li>
+                        <li><a href="?category=fairy-tales" class="text-light text-decoration-none">🏰 Fairy Tales</a></li>
+                    </ul>
+                </div>
+            </div>
+            <hr class="bg-secondary">
+            <div class="text-center">
+                <small class="text-light">&copy; 2026 Magic Storyland. Made with <i class="fas fa-heart text-danger"></i> for young readers everywhere! 📚</small>
+            </div>
+        </div>
+    </footer>
+    
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        const floatingIcons = ['⭐', '✨', '🌟', '💫', '🔮', '🫧', '💭', '🌈'];
+        
+        function createFloatingElement() {
+            const element = document.createElement('div');
+            element.className = 'floating-element';
+            element.textContent = floatingIcons[Math.floor(Math.random() * floatingIcons.length)];
+            element.style.left = Math.random() * 100 + 'vw';
+            element.style.fontSize = (Math.random() * 20 + 15) + 'px';
+            element.style.animationDuration = (Math.random() * 5 + 6) + 's';
+            document.body.appendChild(element);
+            
+            setTimeout(() => element.remove(), 12000);
+        }
+        
+        setInterval(createFloatingElement, 2000);
+        
+        for (let i = 0; i < 5; i++) {
+            setTimeout(createFloatingElement, i * 500);
+        }
+        
+        document.addEventListener('mousemove', function(e) {
+            if (Math.random() > 0.85) {
+                createSparkle(e.pageX, e.pageY);
+            }
+        });
+        
+        function createSparkle(x, y) {
+            const sparkle = document.createElement('div');
+            sparkle.className = 'sparkle';
+            sparkle.innerHTML = '✨';
+            sparkle.style.left = (x - 10) + 'px';
+            sparkle.style.top = (y - 10) + 'px';
+            sparkle.style.fontSize = (Math.random() * 15 + 15) + 'px';
+            document.body.appendChild(sparkle);
+            setTimeout(() => sparkle.remove(), 600);
+        }
+        
+        // Night Mode Toggle
+        const themeToggle = document.getElementById('themeToggle');
+        const themeIcon = themeToggle.querySelector('i');
+        
+        if (localStorage.getItem('nightMode') === 'true') {
+            document.body.classList.add('night-mode');
+            themeIcon.classList.remove('fa-moon');
+            themeIcon.classList.add('fa-sun');
+        }
+        
+        themeToggle.addEventListener('click', function() {
+            document.body.classList.toggle('night-mode');
+            const isNight = document.body.classList.contains('night-mode');
+            localStorage.setItem('nightMode', isNight);
+            
+            if (isNight) {
+                themeIcon.classList.remove('fa-moon');
+                themeIcon.classList.add('fa-sun');
+            } else {
+                themeIcon.classList.remove('fa-sun');
+                themeIcon.classList.add('fa-moon');
+            }
+        });
+    </script>
+    
+    <!-- Custom JS -->
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

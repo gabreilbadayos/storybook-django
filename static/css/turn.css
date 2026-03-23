@@ -1,0 +1,111 @@
+/* Turn.js - CSS Styles for Flipbook Effect */
+
+.turn-js-bootstrap {
+    backface-visibility: visible;
+    perspective: 2000px;
+    transform-style: preserve-3d;
+}
+
+#flipbook {
+    position: relative;
+    width: 900px;
+    height: 600px;
+}
+
+#flipbook .turn-page {
+    background-color: white;
+    cursor: pointer;
+    position: absolute;
+    overflow: hidden;
+}
+
+#flipbook .turn-page canvas {
+    display: block;
+    max-width: 100%;
+    height: auto;
+}
+
+#flipbook .turn-page-wrapper {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+}
+
+#flipbook .page {
+    width: 100%;
+    height: 100%;
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+#flipbook .odd {
+    box-shadow: inset 3px 0px 10px rgba(0, 0, 0, 0.2);
+}
+
+#flipbook .even {
+    box-shadow: inset -3px 0px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* Page shadows */
+#flipbook .shadow {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    z-index: 100;
+}
+
+/* Navigation arrows */
+.flipbook-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 50px;
+    height: 80px;
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    transition: background 0.3s;
+    z-index: 10;
+}
+
+.flipbook-nav:hover {
+    background: rgba(0, 0, 0, 0.8);
+}
+
+.flipbook-nav.prev {
+    left: 0;
+    border-radius: 0 10px 10px 0;
+}
+
+.flipbook-nav.next {
+    right: 0;
+    border-radius: 10px 0 0 10px;
+}
+
+/* Loading indicator */
+.flipbook-loading {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: 18px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    #flipbook {
+        width: 100%;
+        height: auto;
+        aspect-ratio: 3/2;
+    }
+}

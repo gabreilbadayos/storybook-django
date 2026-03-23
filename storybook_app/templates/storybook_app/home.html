@@ -1,0 +1,220 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Magic Storyland - Interactive Stories for Kids{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section text-white">
+    <div class="container position-relative">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1 class="display-3 fw-bold mb-3">
+                    <i class="fas fa-magic me-3"></i>
+                    Welcome to Magic Storyland!
+                </h1>
+                <p class="lead mb-4 fs-4">
+                    Embark on magical adventures with interactive flipbooks, fun read-aloud features, and special moral lessons!
+                </p>
+                <div class="d-flex flex-wrap gap-3">
+                    <a href="#stories" class="btn btn-light btn-lg">
+                        <i class="fas fa-book-open me-2"></i>Explore Stories
+                    </a>
+                    <a href="{% url 'about' %}" class="btn btn-warning btn-lg">
+                        <i class="fas fa-star me-2"></i>Learn More
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-6 text-center mt-5 mt-lg-0">
+                <div class="hero-illustration">
+                    <i class="fas fa-hat-wizard"></i>
+                </div>
+                <div class="mt-4">
+                    <span class="badge bg-light text-dark fs-6 me-2">✨ New Stories</span>
+                    <span class="badge bg-light text-dark fs-6 me-2">📚 Classic Tales</span>
+                    <span class="badge bg-light text-dark fs-6">🎨 Colorful Art</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Stories Section -->
+<section id="stories" class="py-5">
+    <div class="container">
+        <!-- Search and Filter Bar -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+                        <form method="get" class="row g-3">
+                            <div class="col-md-6">
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-0">
+                                        <i class="fas fa-search text-muted"></i>
+                                    </span>
+                                    <input type="text" 
+                                           name="search" 
+                                           class="form-control border-0 bg-light" 
+                                           placeholder="Search stories..."
+                                           value="{{ search_query }}">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <select name="category" class="form-select bg-light border-0">
+                                    <option value="">All Categories</option>
+                                    {% for cat in categories %}
+                                        {% if cat %}
+                                            <option value="{{ cat }}" {% if selected_category == cat %}selected{% endif %}>
+                                                {{ cat|title }}
+                                            </option>
+                                        {% endif %}
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <button type="submit" class="btn btn-primary w-100">
+                                    <i class="fas fa-filter me-2"></i>Filter
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="mb-1">
+                    <i class="fas fa-book-open text-primary me-2"></i>
+                    All Stories
+                </h2>
+                <p class="text-muted mb-0">{{ stories.paginator.count }} stories available</p>
+            </div>
+        </div>
+
+        <!-- Stories Grid -->
+        {% if stories %}
+            <div class="row g-4">
+                {% for story in stories %}
+                    <div class="col-sm-6 col-lg-4 col-xl-3">
+                        <div class="card story-card h-100 border-0 shadow-sm">
+                            <!-- Cover Image -->
+                            <div class="story-cover">
+                                {% if story.cover_image %}
+                                    <img src="{{ story.cover_image.url }}" 
+                                         class="card-img-top" 
+                                         alt="{{ story.title }}">
+                                {% else %}
+                                    <div class="cover-placeholder">
+                                        <i class="fas fa-book"></i>
+                                    </div>
+                                {% endif %}
+                                
+                                <!-- Featured Badge -->
+                                {% if story.is_featured %}
+                                    <span class="badge bg-warning position-absolute top-0 end-0 m-2">
+                                        <i class="fas fa-star me-1"></i>Featured
+                                    </span>
+                                {% endif %}
+                                
+                                <!-- Page Count -->
+                                <span class="badge bg-dark position-absolute bottom-0 start-0 m-2">
+                                    <i class="fas fa-file-alt me-1"></i>{{ story.total_pages }} pages
+                                </span>
+                            </div>
+                            
+                            <!-- Card Body -->
+                            <div class="card-body">
+                                <!-- Category Badge -->
+                                {% if story.category %}
+                                    <span class="badge bg-info mb-2">{{ story.category|title }}</span>
+                                {% endif %}
+                                
+                                <h5 class="card-title">{{ story.title }}</h5>
+                                <p class="card-text text-muted small">
+                                    {{ story.description|truncatewords:15 }}
+                                </p>
+                            </div>
+                            
+                            <!-- Card Footer -->
+                            <div class="card-footer bg-transparent border-0">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <small class="text-muted">
+                                        <i class="fas fa-calendar me-1"></i>
+                                        {{ story.uploaded_at|date:"M d, Y" }}
+                                    </small>
+                                    <a href="{% url 'story-detail' story.pk %}" 
+                                       class="btn btn-sm btn-primary">
+                                        <i class="fas fa-book-reader me-1"></i>Read
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Pagination -->
+            {% if stories.has_other_pages %}
+                <nav class="mt-5" aria-label="Story pagination">
+                    <ul class="pagination justify-content-center">
+                        {% if stories.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}">
+                                    <i class="fas fa-angle-double-left"></i>
+                                </a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ stories.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}">
+                                    <i class="fas fa-angle-left"></i>
+                                </a>
+                            </li>
+                        {% endif %}
+                        
+                        {% for num in stories.paginator.page_range %}
+                            {% if stories.number == num %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ num }}</span>
+                                </li>
+                            {% elif num > stories.number|add:'-3' and num < stories.number|add:'3' %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}">
+                                        {{ num }}
+                                    </a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if stories.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ stories.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}">
+                                    <i class="fas fa-angle-right"></i>
+                                </a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ stories.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}">
+                                    <i class="fas fa-angle-double-right"></i>
+                                </a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            {% endif %}
+        {% else %}
+            <!-- Empty State -->
+            <div class="text-center py-5">
+                <div class="empty-state">
+                    <i class="fas fa-book-open fa-4x text-muted mb-3"></i>
+                    <h3 class="text-muted">No stories found</h3>
+                    <p class="text-muted">Try adjusting your search or filter criteria.</p>
+                    <a href="{% url 'story-list' %}" class="btn btn-primary">
+                        <i class="fas fa-redo me-2"></i>Clear Filters
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

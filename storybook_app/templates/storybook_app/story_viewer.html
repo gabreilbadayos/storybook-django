@@ -1,0 +1,704 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Reading: {{ story.title }} - Magic Storyland{% endblock %}
+
+{% block extra_css %}
+<style>
+    .viewer-container {
+        background: linear-gradient(135deg, #FF6B6B 0%, #FF9F43 25%, #FFE66D 50%, #4ECDC4 75%, #A66CFF 100%);
+        background-size: 400% 400%;
+        animation: rainbow-bg 10s ease infinite;
+        min-height: 100vh;
+        padding: 20px;
+    }
+    
+    @keyframes rainbow-bg {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+    
+    .viewer-card {
+        background: white;
+        border-radius: 30px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+        overflow: hidden;
+        height: calc(100vh - 40px);
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .control-bar {
+        background: linear-gradient(135deg, #A66CFF, #FF6B9D);
+        padding: 15px 25px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 12px;
+        flex-shrink: 0;
+    }
+    
+    .control-btn {
+        background: rgba(255,255,255,0.25);
+        border: 3px solid rgba(255,255,255,0.5);
+        color: white;
+        padding: 10px 20px;
+        border-radius: 30px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 14px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    #speedSelect {
+        background: rgba(255,255,255,0.25) !important;
+        border: 3px solid rgba(255,255,255,0.5) !important;
+        color: white !important;
+        border-radius: 30px !important;
+        padding: 8px 12px !important;
+        font-size: 12px !important;
+        font-weight: 600 !important;
+        cursor: pointer;
+    }
+    
+    #speedSelect option {
+        background: #A66CFF;
+        color: white;
+    }
+    
+    .control-btn:hover {
+        background: rgba(255,255,255,0.4);
+        color: white;
+        transform: scale(1.05);
+        box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+    }
+    
+    .control-btn:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+    }
+    
+    .control-btn.active {
+        background: linear-gradient(135deg, #FC5C65, #eb3b5a);
+        border-color: white;
+    }
+    
+    .page-indicator {
+        color: white;
+        font-weight: 700;
+        font-size: 1.1rem;
+        text-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+    
+    #flipbook-viewer {
+        width: 100%;
+        flex: 1;
+        min-height: 350px;
+        background: linear-gradient(180deg, #f0f4ff 0%, #fff5f5 50%, #f5f0ff 100%);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 25px;
+    }
+    
+    .flip-book {
+        display: flex !important;
+    }
+    
+    .page {
+        background: white;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        border-radius: 8px;
+        transition: box-shadow 0.3s ease;
+    }
+    
+    .page.reading {
+        box-shadow: 0 0 30px rgba(166, 108, 255, 0.8), 0 0 60px rgba(255, 107, 157, 0.5);
+        animation: reading-glow 1s ease-in-out infinite alternate;
+    }
+    
+    @keyframes reading-glow {
+        from { box-shadow: 0 0 20px rgba(166, 108, 255, 0.6), 0 0 40px rgba(255, 107, 157, 0.4); }
+        to { box-shadow: 0 0 40px rgba(166, 108, 255, 0.9), 0 0 80px rgba(255, 107, 157, 0.6); }
+    }
+    
+    .page canvas {
+        display: block;
+        border-radius: 8px;
+    }
+    
+    :fullscreen .viewer-container .container,
+    :-webkit-full-screen .viewer-container .container,
+    :-ms-fullscreen .viewer-container .container {
+        max-width: 100% !important;
+        width: 100% !important;
+        padding: 0 !important;
+    }
+    
+    :fullscreen #flipbook-viewer,
+    :-webkit-full-screen #flipbook-viewer,
+    :-ms-fullscreen #flipbook-viewer {
+        height: calc(100vh - 150px) !important;
+        min-height: 400px !important;
+    }
+    
+:fullscreen .flip-book,
+    :-webkit-full-screen .flip-book {
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
+    
+    :fullscreen .page,
+    :-webkit-full-screen .page {
+        visibility: visible !important;
+        display: block !important;
+    }
+    
+    .moral-lesson-box {
+        background: linear-gradient(135deg, #e8e0f0 0%, #f0e8e8 100%);
+        border-radius: 25px;
+        padding: 30px;
+        margin: 25px;
+        text-align: center;
+        border: 4px solid #FFE66D;
+    }
+    
+    .moral-lesson-box i {
+        color: #FFE66D;
+        animation: sparkle 1.5s ease-in-out infinite;
+    }
+    
+    @keyframes sparkle {
+        0%, 100% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.2); opacity: 0.8; }
+    }
+    
+    .moral-lesson-box h3 {
+        background: linear-gradient(135deg, #FF9F43, #FF6B9D);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .reading-progress {
+        position: fixed;
+        bottom: 25px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: linear-gradient(135deg, #A66CFF, #FF6B9D);
+        color: white;
+        padding: 12px 25px;
+        border-radius: 30px;
+        font-weight: 700;
+        z-index: 1000;
+        display: none;
+        box-shadow: 0 8px 30px rgba(166, 108, 255, 0.4);
+    }
+    
+    .reading-progress.show {
+        display: block;
+    }
+    
+    .viewer-footer {
+        background: linear-gradient(135deg, #A66CFF, #FF6B9D);
+        padding: 18px;
+        text-align: center;
+        color: white;
+        flex-shrink: 0;
+    }
+    
+    @media (min-width: 1200px) {
+        #flipbook-viewer {
+            padding: 30px 50px;
+        }
+    }
+    
+    @media (max-width: 767px) {
+        .control-bar {
+            padding: 8px 10px;
+        }
+        .control-btn {
+            padding: 6px 10px;
+            font-size: 12px;
+        }
+        .page-indicator {
+            font-size: 14px;
+        }
+        .viewer-footer {
+            padding: 10px;
+            font-size: 12px;
+        }
+        .moral-lesson-box {
+            margin: 10px;
+            padding: 15px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="viewer-container py-3">
+    <div class="container">
+        <a href="{% url 'story-detail' story.pk %}" class="btn btn-light mb-3">
+            <i class="fas fa-arrow-left me-2"></i>Back to Story
+        </a>
+        
+        <div class="viewer-card" id="viewerCard">
+            <div class="control-bar">
+                <div class="d-flex align-items-center gap-2">
+                    <button class="control-btn" id="prevBtn">
+                        <i class="fas fa-chevron-left me-1"></i>Prev
+                    </button>
+                    <span class="page-indicator">
+                        Page <span id="currentPage">1</span> of <span id="totalPages">{{ story.total_pages|default:"?" }}</span>
+                    </span>
+                    <button class="control-btn" id="nextBtn">
+                        Next<i class="fas fa-chevron-right ms-1"></i>
+                    </button>
+                </div>
+                
+                <div class="d-flex align-items-center gap-2">
+                    <button class="control-btn" id="readAloudBtn" title="Read Aloud">
+                        <i class="fas fa-volume-up me-1"></i>Read Aloud
+                    </button>
+                    <select id="speedSelect" class="control-btn" style="padding: 6px 10px; font-size: 12px;">
+                        <option value="0.7">Slow</option>
+                        <option value="0.9" selected>Normal</option>
+                        <option value="1.1">Fast</option>
+                        <option value="1.2">Very Fast</option>
+                    </select>
+                    <a href="{{ story.pdf_file.url }}" download class="control-btn">
+                        <i class="fas fa-download me-1"></i>Download
+                    </a>
+                </div>
+            </div>
+            
+            <div id="flipbook-viewer">
+                <div id="flipbook" class="flip-book"></div>
+            </div>
+            
+            <footer class="viewer-footer">
+                <p class="mb-0">
+                    <i class="fas fa-book-open me-1"></i>
+                    Magic Storyland - Interactive Stories for Kids
+                </p>
+            </footer>
+        </div>
+        
+        {% if story.moral_lesson %}
+        <div class="moral-lesson-box" id="moralLesson" style="margin: 20px;">
+            <i class="fas fa-lightbulb fa-3x text-warning mb-3"></i>
+            <h3 class="mb-3" style="color: #2d2d4a !important;">Moral of the Story</h3>
+            <p class="lead" style="color: #2d2d4a !important;">{{ story.moral_lesson }}</p>
+            <a href="{% url 'story-list' %}" class="btn btn-primary btn-lg mt-3">
+                <i class="fas fa-home me-2"></i>Back to All Stories
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="reading-progress" id="readingProgress">
+    <i class="fas fa-spinner fa-spin me-2"></i>
+    <span id="readingStatus">Preparing to read...</span>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/page-flip/dist/js/page-flip.browser.js"></script>
+
+<script>
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    
+    let pageFlip = null;
+    let totalPages = {{ story.total_pages|default:0 }};
+    let currentPage = 1;
+    let pdfDoc = null;
+    let storyText = '';
+    let currentPageIndex = 0;
+    let flipbookLoaded = false;
+    const pdfUrl = '{{ story.pdf_file.url }}';
+    const storyId = {{ story.pk }};
+    const fallbackText = '{{ story_text|escapejs }}';
+    
+    async function loadStoryText() {
+        try {
+            const response = await fetch(`/api/story/${storyId}/text/`);
+            if (response.ok) {
+                const data = await response.json();
+                storyText = data.text || fallbackText || '';
+            } else {
+                storyText = fallbackText || '';
+            }
+        } catch (error) {
+            console.error('Failed to load story text:', error);
+            storyText = fallbackText || '';
+        }
+        
+        if (!storyText || storyText.length < 10) {
+            storyText = fallbackText || '';
+        }
+        console.log('Story text loaded, length:', storyText.length);
+    }
+    
+    const storyTitle = '{{ story.title|escapejs }}';
+    
+    // Load text first, then initialize flipbook
+    loadStoryText().then(() => {
+        if (storyTitle && storyText) {
+            storyText = storyTitle + '. ' + storyText;
+        }
+    });
+    
+    async function initFlipbook() {
+        if (flipbookLoaded) {
+            console.log('Already loaded, skipping');
+            return;
+        }
+        flipbookLoaded = true;
+        
+        try {
+            console.log('initFlipbook starting...');
+            
+            if (!pdfDoc) {
+                const loadingTask = pdfjsLib.getDocument(pdfUrl);
+                pdfDoc = await loadingTask.promise;
+                totalPages = pdfDoc.numPages;
+                document.getElementById('totalPages').textContent = totalPages;
+                console.log('PDF loaded, total pages:', totalPages);
+            }
+            
+            const flipbook = document.getElementById('flipbook');
+            flipbook.innerHTML = '';
+            
+            const containerWidth = document.getElementById('flipbook-viewer').clientWidth;
+            const containerHeight = document.getElementById('flipbook-viewer').clientHeight;
+            
+            const isMobile = window.innerWidth < 768;
+            let pageWidth, pageHeight;
+            
+            if (isMobile) {
+                pageWidth = containerWidth - 40;
+                pageHeight = containerHeight - 40;
+            } else {
+                pageWidth = (containerWidth - 80) / 2;
+                pageHeight = containerHeight - 60;
+            }
+            
+            pageWidth = Math.max(200, pageWidth);
+            pageHeight = Math.max(280, pageHeight);
+            
+            console.log('Rendering', totalPages, 'pages at', pageWidth, 'x', pageHeight);
+            
+            for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
+                const page = await pdfDoc.getPage(pageNum);
+                const baseViewport = page.getViewport({ scale: 1 });
+                
+                const scaleX = pageWidth / baseViewport.width;
+                const scaleY = pageHeight / baseViewport.height;
+                const baseScale = Math.min(scaleX, scaleY);
+                
+                const renderScale = baseScale * 2;
+                const scaledViewport = page.getViewport({ scale: renderScale });
+                
+                console.log('Rendering page', pageNum, 'viewport:', scaledViewport.width, 'x', scaledViewport.height);
+                
+                const pageDiv = document.createElement('div');
+                pageDiv.className = 'page';
+                pageDiv.id = 'page-' + pageNum;
+                pageDiv.style.width = pageWidth + 'px';
+                pageDiv.style.height = pageHeight + 'px';
+                pageDiv.dataset.pageNum = pageNum;
+                
+                const canvas = document.createElement('canvas');
+                canvas.id = 'canvas-' + pageNum;
+                const context = canvas.getContext('2d');
+                canvas.height = scaledViewport.height;
+                canvas.width = scaledViewport.width;
+                
+                const renderContext = {
+                    canvasContext: context,
+                    viewport: scaledViewport
+                };
+                
+                await page.render(renderContext).promise;
+                pageDiv.appendChild(canvas);
+                flipbook.appendChild(pageDiv);
+            }
+            
+            // Simple page navigation without page-flip
+            initSimpleFlipbook();
+        } catch (error) {
+            console.error('Error loading PDF:', error);
+            document.getElementById('flipbook-viewer').innerHTML = 
+                '<p class="text-danger">Error loading PDF. Please download and view locally.</p>';
+        }
+    }
+    
+    function getTextForCurrentPage() {
+        if (!storyText || totalPages <= 1) {
+            return storyText;
+        }
+        
+        if (currentPageIndex === 0) {
+            return storyText;
+        }
+        
+        // Split text by sentences for better reading
+        const sentences = storyText.match(/[^.!?]+[.!?]+/g) || [storyText];
+        const sentencesPerPage = Math.ceil(sentences.length / totalPages);
+        
+        const startSentence = currentPageIndex * sentencesPerPage;
+        const endSentence = Math.min(startSentence + sentencesPerPage, sentences.length);
+        
+        const pageSentences = sentences.slice(startSentence, endSentence);
+        const pageText = pageSentences.join(' ').trim();
+        
+        if (pageText.length < 50) {
+            // Fallback to character-based if sentence splitting doesn't work well
+            const textByPage = Math.floor(storyText.length / totalPages);
+            const startIndex = currentPageIndex * textByPage;
+            const endIndex = Math.min(startIndex + textByPage, storyText.length);
+            return 'Page ' + (currentPageIndex + 1) + '. ' + storyText.substring(startIndex, endIndex);
+        }
+        
+        return 'Page ' + (currentPageIndex + 1) + '. ' + pageText;
+    }
+    
+    function initSimpleFlipbook() {
+        const flipbook = document.getElementById('flipbook');
+        const pages = flipbook.querySelectorAll('.page');
+        console.log('Found pages for flipbook:', pages.length);
+        
+        if (pages.length === 0) {
+            console.error('No pages found');
+            return;
+        }
+        
+        const viewer = document.getElementById('flipbook-viewer');
+        const containerWidth = viewer.clientWidth || 800;
+        const containerHeight = viewer.clientHeight || 500;
+        
+        const isMobile = window.innerWidth < 768;
+        
+        let pageWidth, pageHeight;
+        
+        if (isMobile) {
+            pageWidth = containerWidth - 40;
+            pageHeight = containerHeight - 40;
+        } else {
+            pageWidth = (containerWidth - 80) / 2;
+            pageHeight = containerHeight - 60;
+        }
+        
+        pageWidth = Math.max(200, pageWidth);
+        pageHeight = Math.max(280, pageHeight);
+        
+        console.log('Creating PageFlip with:', pageWidth, 'x', pageHeight);
+        
+        // Create PageFlip instance
+        pageFlip = new St.PageFlip(flipbook, {
+            width: pageWidth,
+            height: pageHeight,
+            showCover: true,
+            flippingTime: 1000,
+            usePortrait: isMobile,
+            maxShadowOpacity: 0.5,
+            showShadow: true,
+            enableMouseEvents: true,
+            enableTouchEvents: true
+        });
+        
+        pageFlip.loadFromHTML(pages);
+        
+        pageFlip.on('flip', (e) => {
+            const pageIndex = e.data;
+            currentPage = pageIndex + 1;
+            currentPageIndex = pageIndex;
+            document.getElementById('currentPage').textContent = currentPage;
+            updateButtons();
+            if (isReading) highlightCurrentPage();
+        });
+        
+        updateButtons();
+        console.log('PageFlip initialized');
+    }
+    
+    function highlightCurrentPage() {
+        const pages = document.querySelectorAll('.page');
+        if (pages && pages.length > 0) {
+            const activeIndex = currentPageIndex;
+            pages.forEach((page, i) => {
+                if (i === activeIndex && isReading) {
+                    page.classList.add('reading');
+                } else {
+                    page.classList.remove('reading');
+                }
+            });
+        }
+    }
+    
+    function removeHighlight() {
+        document.querySelectorAll('.page.reading').forEach(page => {
+            page.classList.remove('reading');
+        });
+    }
+    
+    // Update highlight when page changes
+    function updateButtons() {
+        const pageDisplay = parseInt(document.getElementById('currentPage').textContent) || 1;
+        document.getElementById('prevBtn').disabled = pageDisplay <= 1;
+        document.getElementById('nextBtn').disabled = pageDisplay >= totalPages;
+    }
+    
+    // Add button event listeners
+    document.getElementById('prevBtn').addEventListener('click', () => {
+        if (pageFlip) pageFlip.flipPrev();
+    });
+    
+    document.getElementById('nextBtn').addEventListener('click', () => {
+        if (pageFlip) pageFlip.flipNext();
+    });
+    
+    // Click on flipbook to navigate
+    document.getElementById('flipbook').addEventListener('click', function(e) {
+        if (!pageFlip) return;
+        
+        const rect = this.getBoundingClientRect();
+        const clickX = e.clientX - rect.left;
+        
+        if (clickX < rect.width / 2) {
+            pageFlip.flipPrev();
+        } else {
+            pageFlip.flipNext();
+        }
+    });
+    
+    // Read Aloud functions
+    let isReading = false;
+    let speechSynthesis = window.speechSynthesis;
+    
+    function toggleReadAloud() {
+        const btn = document.getElementById('readAloudBtn');
+        
+        if (!storyText || storyText.length < 10) {
+            alert('Loading story text... Please try again in a moment.');
+            return;
+        }
+        
+        if (isReading) {
+            speechSynthesis.cancel();
+            isReading = false;
+            btn.classList.remove('active');
+            btn.innerHTML = '<i class="fas fa-volume-up me-1"></i>Read Aloud';
+        } else {
+            startReading();
+        }
+    }
+    
+    function startReading() {
+        let textToRead = storyText;
+        
+        if (!textToRead || textToRead.length < 10) {
+            alert('No story text available to read aloud.');
+            return;
+        }
+        
+        // Clean up the text for better reading
+        textToRead = textToRead
+            .replace(/\s+/g, ' ')
+            .replace(/["""]/g, '"')
+            .replace(/['']/g, "'")
+            .replace(/[–—]/g, '-')
+            .replace(/\.\.\./g, '.')
+            .trim();
+        
+        // Add proper pauses for punctuation
+        textToRead = textToRead
+            .replace(/([.!?])\s*/g, '$1 ')
+            .replace(/,\s*/g, ', ');
+        
+        console.log('Reading text, length:', textToRead.length);
+        
+        const btn = document.getElementById('readAloudBtn');
+        btn.classList.add('active');
+        btn.innerHTML = '<i class="fas fa-stop me-1"></i>Stop';
+        
+        speechSynthesis.cancel();
+        
+        setTimeout(() => {
+            const speedSelect = document.getElementById('speedSelect');
+            const speed = parseFloat(speedSelect?.value) || 0.9;
+            
+            const utterance = new SpeechSynthesisUtterance(textToRead);
+            
+            // Set rate based on user selection
+            utterance.rate = speed;
+            utterance.pitch = 1;
+            utterance.volume = 1;
+            
+            // Try to get the best English voice
+            const voices = speechSynthesis.getVoices();
+            const preferredVoices = [
+                'Google US English',
+                'Microsoft Zira',
+                'Microsoft David',
+                'Samantha',
+                'Daniel',
+                'Karen',
+                'Tessa',
+                'Lucy'
+            ];
+            
+            for (const name of preferredVoices) {
+                const voice = voices.find(v => v.name.includes(name) && v.lang.startsWith('en'));
+                if (voice) {
+                    utterance.voice = voice;
+                    break;
+                }
+            }
+            
+            // If no preferred voice found, try any English voice
+            if (!utterance.voice) {
+                const englishVoice = voices.find(v => v.lang.startsWith('en'));
+                if (englishVoice) {
+                    utterance.voice = englishVoice;
+                }
+            }
+            
+            utterance.onstart = () => {
+                isReading = true;
+                highlightCurrentPage();
+            };
+            
+            utterance.onend = () => {
+                isReading = false;
+                removeHighlight();
+                btn.classList.remove('active');
+                btn.innerHTML = '<i class="fas fa-volume-up me-1"></i>Read Aloud';
+            };
+            
+            utterance.onerror = (event) => {
+                console.error('Speech error:', event.error);
+                isReading = false;
+                removeHighlight();
+                btn.classList.remove('active');
+                btn.innerHTML = '<i class="fas fa-volume-up me-1"></i>Read Aloud';
+            };
+            
+            speechSynthesis.speak(utterance);
+            isReading = true;
+        }, 100);
+    }
+    
+    document.getElementById('readAloudBtn').addEventListener('click', toggleReadAloud);
+    
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', initFlipbook);
+
+</script>
+{% endblock %}

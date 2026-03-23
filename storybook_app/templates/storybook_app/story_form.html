@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{% if object %}Edit Story{% else %}Upload Story{% endif %} - Magic Storyland{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-lg">
+                <div class="card-header bg-primary text-white py-3">
+                    <h3 class="mb-0">
+                        <i class="fas fa-upload me-2"></i>
+                        {% if object %}Edit Story{% else %}Upload New Story{% endif %}
+                    </h3>
+                </div>
+                
+                <div class="card-body p-4">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <!-- Title -->
+                        <div class="mb-4">
+                            <label for="{{ form.title.id_for_label }}" class="form-label fw-semibold">
+                                <i class="fas fa-heading me-2 text-primary"></i>Title *
+                            </label>
+                            {{ form.title }}
+                            {% if form.title.errors %}
+                                <div class="text-danger small mt-1">{{ form.title.errors.0 }}</div>
+                            {% endif %}
+                            <div class="form-text">Enter the story title</div>
+                        </div>
+                        
+                        <!-- Description -->
+                        <div class="mb-4">
+                            <label for="{{ form.description.id_for_label }}" class="form-label fw-semibold">
+                                <i class="fas fa-align-left me-2 text-primary"></i>Description
+                            </label>
+                            {{ form.description }}
+                            {% if form.description.errors %}
+                                <div class="text-danger small mt-1">{{ form.description.errors.0 }}</div>
+                            {% endif %}
+                            <div class="form-text">Brief description of the story</div>
+                        </div>
+                        
+                        <!-- PDF File -->
+                        <div class="mb-4">
+                            <label for="{{ form.pdf_file.id_for_label }}" class="form-label fw-semibold">
+                                <i class="fas fa-file-pdf me-2 text-danger"></i>PDF File *
+                            </label>
+                            {{ form.pdf_file }}
+                            {% if form.pdf_file.errors %}
+                                <div class="text-danger small mt-1">{{ form.pdf_file.errors.0 }}</div>
+                            {% endif %}
+                            <div class="form-text">Upload a PDF file (max 50MB)</div>
+                        </div>
+                        
+                        <!-- Cover Image -->
+                        <div class="mb-4">
+                            <label for="{{ form.cover_image.id_for_label }}" class="form-label fw-semibold">
+                                <i class="fas fa-image me-2 text-success"></i>Cover Image
+                            </label>
+                            {{ form.cover_image }}
+                            {% if form.cover_image.errors %}
+                                <div class="text-danger small mt-1">{{ form.cover_image.errors.0 }}</div>
+                            {% endif %}
+                            <div class="form-text">Optional cover image for the story</div>
+                        </div>
+                        
+                        <!-- Category -->
+                        <div class="mb-4">
+                            <label for="{{ form.category.id_for_label }}" class="form-label fw-semibold">
+                                <i class="fas fa-folder me-2 text-warning"></i>Category
+                            </label>
+                            {{ form.category }}
+                            {% if form.category.errors %}
+                                <div class="text-danger small mt-1">{{ form.category.errors.0 }}</div>
+                            {% endif %}
+                            <div class="form-text">e.g., Fables, Fairy Tales, Adventure</div>
+                        </div>
+                        
+                        <!-- Featured -->
+                        <div class="mb-4">
+                            <div class="form-check">
+                                {{ form.is_featured }}
+                                <label class="form-check-label fw-semibold" for="{{ form.is_featured.id_for_label }}">
+                                    <i class="fas fa-star me-2 text-warning"></i>Mark as Featured
+                                </label>
+                            </div>
+                            <div class="form-text">Featured stories appear at the top</div>
+                        </div>
+                        
+                        <!-- Info Box -->
+                        <div class="alert alert-info mb-4">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>Note:</strong> After uploading, the system will automatically:
+                            <ul class="mb-0 mt-2">
+                                <li>Extract text from the PDF for read-aloud feature</li>
+                                <li>Generate a moral lesson using AI</li>
+                                <li>Count total pages</li>
+                            </ul>
+                        </div>
+                        
+                        <!-- Submit Button -->
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{% url 'story-list' %}" class="btn btn-outline-secondary me-md-2">
+                                <i class="fas fa-times me-2"></i>Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-upload me-2"></i>
+                                {% if object %}Update Story{% else %}Upload Story{% endif %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

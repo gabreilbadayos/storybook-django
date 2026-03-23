@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Delete Story - Magic Storyland{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-lg">
+                <div class="card-header bg-danger text-white py-3">
+                    <h3 class="mb-0">
+                        <i class="fas fa-trash-alt me-2"></i>
+                        Delete Story
+                    </h3>
+                </div>
+                
+                <div class="card-body p-4 text-center">
+                    <div class="mb-4">
+                        <i class="fas fa-exclamation-triangle fa-4x text-warning"></i>
+                    </div>
+                    
+                    <h4 class="mb-3">Are you sure you want to delete "{{ object.title }}"?</h4>
+                    
+                    <p class="text-muted mb-4">
+                        This action cannot be undone. The PDF file and all associated data will be permanently deleted.
+                    </p>
+                    
+                    <div class="d-flex gap-2 justify-content-center">
+                        <a href="{% url 'story-list' %}" class="btn btn-secondary btn-lg">
+                            <i class="fas fa-times me-2"></i>Cancel
+                        </a>
+                        <form method="post" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger btn-lg">
+                                <i class="fas fa-trash-alt me-2"></i>Delete
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
