@@ -31,6 +31,9 @@ urlpatterns = [
     # Get story text for text-to-speech
     path('api/story/<int:pk>/text/', views.get_story_text, name='story-text'),
     
+    # User profile page
+    path('accounts/profile/', views.profile_view, name='profile'),
+    
     # About page
     path('about/', views.about_page, name='about'),
 ]

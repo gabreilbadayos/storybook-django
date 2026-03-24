@@ -4,7 +4,8 @@ Handles all HTTP requests for the storybook web app.
 """
 
 from django.shortcuts import render, get_object_or_404, redirect
-from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
+from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, TemplateView
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -324,3 +325,24 @@ def get_story_text(request, pk):
         return JsonResponse({'text': story.extracted_text})
     
     return JsonResponse({'text': ''})
+
+
+@login_required
+def profile_view(request):
+    """Display user profile page."""
+    last_login_str = "Never"
+    if request.user.last_login:
+        last_login_str = request.user.last_login.strftime("%B %d, %Y, %I:%M %p")
+    
+    context = {
+        'user': request.user,
+        'profile_data': {
+            'username': request.user.username,
+            'email': request.user.email,
+            'date_joined': request.user.date_joined.strftime("%B %d, %Y"),
+            'last_login': last_login_str,
+            'is_superuser': request.user.is_superuser,
+            'reading_progress_count': request.user.reading_progress.count()
+        }
+    }
+    return render(request, 'registration/profile.html', context)

@@ -13,6 +13,9 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-change-this-in-produc
 # Set DEBUG to False in production
 DEBUG = os.environ.get('DEBUG', '') != 'False'
 
+# Redirect to home page after logout
+LOGOUT_REDIRECT_URL = 'story-list'
+
 ALLOWED_HOSTS = []
 RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
 if RENDER_EXTERNAL_HOSTNAME:

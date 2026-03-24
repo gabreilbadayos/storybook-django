@@ -347,12 +347,14 @@
     
     const storyTitle = '{{ story.title|escapejs }}';
     
-    // Load text first, then initialize flipbook
-    loadStoryText().then(() => {
-        if (storyTitle && storyText) {
-            storyText = storyTitle + '. ' + storyText;
-        }
-    });
+     // Load text first, then initialize flipbook
+     loadStoryText().then(() => {
+         if (storyTitle && storyText) {
+             storyText = storyTitle + '. ' + storyText;
+         }
+         // Initialize flipbook after text is loaded
+         initFlipbook();
+     });
     
     async function initFlipbook() {
         if (flipbookLoaded) {
@@ -696,40 +698,26 @@
 
 
     document.getElementById('readAloudBtn').addEventListener('click', toggleReadAloud);
-
-    // Preload voices and warm up the speech synthesis engine
-    function warmUpSpeechSynthesis() {
+    
+    // Preload voices for speech synthesis
+    function loadVoices() {
         return new Promise((resolve) => {
             let voices = speechSynthesis.getVoices();
             if (voices.length) {
                 resolve(voices);
                 return;
             }
-            // Create a silent utterance to kickstart the engine
-            const starter = new SpeechSynthesisUtterance('');
-            starter.volume = 0;
-            speechSynthesis.speak(starter);
-
             speechSynthesis.onvoiceschanged = () => {
                 voices = speechSynthesis.getVoices();
                 resolve(voices);
             };
-
             // Fallback timeout
-            setTimeout(() => resolve(speechSynthesis.getVoices()), 1500);
+            setTimeout(() => resolve(speechSynthesis.getVoices()), 1000);
         });
     }
-
-
-    document.addEventListener('DOMContentLoaded', () => {
-        initFlipbook();
-        warmUpSpeechSynthesis().then(voices => {
-            console.log('Voices loaded:', voices.length);
-        });
-    });
-
-    // Replace previous loadVoices with the more robust warmUp function
-    const loadVoices = warmUpSpeechSynthesis;
+    
+    // Load voices immediately
+    loadVoices();
 
 </script>
 {% endblock %}
