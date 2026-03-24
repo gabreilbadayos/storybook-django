@@ -53,7 +53,7 @@ application = get_wsgi_application()
 ```
 DEBUG=False
 SECRET_KEY=your-very-secret-key-generate-new-one
-ALLOWED_HOSTS=YOURUSERNAME.pythonanywhere.com
+ALLOWED_HOSTS=gabreil.pythonanywhere.com
 ```
 
 ### 6. Database
@@ -78,8 +78,8 @@ python manage.py collectstatic --noinput
 
 ### 8. Access
 ```
-Site: https://YOURUSERNAME.pythonanywhere.com
-Admin: https://YOURUSERNAME.pythonanywhere.com/admin/
+Site: https://gabreil.pythonanywhere.com
+Admin: https://gabreil.pythonanywhere.com/admin/
 ```
 
 ## Updates
