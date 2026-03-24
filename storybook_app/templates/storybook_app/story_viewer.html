@@ -580,125 +580,156 @@
     
     // Read Aloud functions
     let isReading = false;
+    let isStarting = false; // Guard against double-clicks
     let speechSynthesis = window.speechSynthesis;
-    
+
     function toggleReadAloud() {
-        const btn = document.getElementById('readAloudBtn');
-        
-        if (!storyText || storyText.length < 10) {
-            alert('Loading story text... Please try again in a moment.');
-            return;
-        }
-        
         if (isReading) {
-            speechSynthesis.cancel();
-            isReading = false;
-            btn.classList.remove('active');
-            btn.innerHTML = '<i class="fas fa-volume-up me-1"></i>Read Aloud';
-        } else {
+            speechSynthesis.cancel(); // This will trigger the onend event
+        } else if (!isStarting) {
+            if (!storyText || storyText.length < 10) {
+                alert('Loading story text... Please try again in a moment.');
+                return;
+            }
             startReading();
         }
     }
-    
-    function startReading() {
-        let textToRead = storyText;
-        
+
+    async function startReading() {
+        if (isStarting) return;
+        isStarting = true;
+
+        // Failsafe to prevent the button from getting stuck
+        const failsafeTimeout = setTimeout(() => {
+            if (isStarting) {
+                console.warn('Speech synthesis startup timed out. Resetting state.');
+                isStarting = false;
+                // Optionally update button state here if needed
+            }
+        }, 3000); // 3-second timeout
+
+        let textToRead = getTextForCurrentPage();
+
         if (!textToRead || textToRead.length < 10) {
-            alert('No story text available to read aloud.');
+            alert('No story text available to read for this page.');
+            isStarting = false;
+            clearTimeout(failsafeTimeout);
             return;
         }
-        
+
         // Clean up the text for better reading
-        textToRead = textToRead
-            .replace(/\s+/g, ' ')
-            .replace(/["""]/g, '"')
-            .replace(/['']/g, "'")
-            .replace(/[–—]/g, '-')
-            .replace(/\.\.\./g, '.')
-            .trim();
-        
-        // Add proper pauses for punctuation
-        textToRead = textToRead
-            .replace(/([.!?])\s*/g, '$1 ')
-            .replace(/,\s*/g, ', ');
-        
-        console.log('Reading text, length:', textToRead.length);
-        
+        textToRead = textToRead.replace(/\s+/g, ' ').trim();
+
         const btn = document.getElementById('readAloudBtn');
-        btn.classList.add('active');
-        btn.innerHTML = '<i class="fas fa-stop me-1"></i>Stop';
-        
-        speechSynthesis.cancel();
-        
-        setTimeout(() => {
-            const speedSelect = document.getElementById('speedSelect');
-            const speed = parseFloat(speedSelect?.value) || 0.9;
-            
-            const utterance = new SpeechSynthesisUtterance(textToRead);
-            
-            // Set rate based on user selection
-            utterance.rate = speed;
-            utterance.pitch = 1;
-            utterance.volume = 1;
-            
-            // Try to get the best English voice
-            const voices = speechSynthesis.getVoices();
-            const preferredVoices = [
-                'Google US English',
-                'Microsoft Zira',
-                'Microsoft David',
-                'Samantha',
-                'Daniel',
-                'Karen',
-                'Tessa',
-                'Lucy'
-            ];
-            
-            for (const name of preferredVoices) {
-                const voice = voices.find(v => v.name.includes(name) && v.lang.startsWith('en'));
-                if (voice) {
-                    utterance.voice = voice;
-                    break;
-                }
+        const voices = await loadVoices();
+
+        if (voices.length === 0) {
+            alert("Sorry, no text-to-speech voices were found on your system.");
+            isStarting = false;
+            clearTimeout(failsafeTimeout);
+            return;
+        }
+
+        const speedSelect = document.getElementById('speedSelect');
+        const speed = parseFloat(speedSelect?.value) || 0.9;
+        const utterance = new SpeechSynthesisUtterance(textToRead);
+
+        utterance.rate = speed;
+        utterance.pitch = 1;
+        utterance.volume = 1;
+
+        const preferredVoices = [
+            'Google US English', 'Microsoft Zira', 'Microsoft David',
+            'Samantha', 'Daniel', 'Karen', 'Tessa', 'Lucy'
+        ];
+
+        let selectedVoice = null;
+        for (const name of preferredVoices) {
+            const voice = voices.find(v => v.name.includes(name) && v.lang.startsWith('en'));
+            if (voice) {
+                selectedVoice = voice;
+                break;
             }
-            
-            // If no preferred voice found, try any English voice
-            if (!utterance.voice) {
-                const englishVoice = voices.find(v => v.lang.startsWith('en'));
-                if (englishVoice) {
-                    utterance.voice = englishVoice;
-                }
-            }
-            
-            utterance.onstart = () => {
-                isReading = true;
-                highlightCurrentPage();
-            };
-            
-            utterance.onend = () => {
-                isReading = false;
-                removeHighlight();
-                btn.classList.remove('active');
-                btn.innerHTML = '<i class="fas fa-volume-up me-1"></i>Read Aloud';
-            };
-            
-            utterance.onerror = (event) => {
-                console.error('Speech error:', event.error);
-                isReading = false;
-                removeHighlight();
-                btn.classList.remove('active');
-                btn.innerHTML = '<i class="fas fa-volume-up me-1"></i>Read Aloud';
-            };
-            
-            speechSynthesis.speak(utterance);
+        }
+
+        if (!selectedVoice) {
+            selectedVoice = voices.find(v => v.lang.startsWith('en'));
+        }
+
+        if (selectedVoice) {
+            utterance.voice = selectedVoice;
+        }
+
+        utterance.onstart = () => {
+            clearTimeout(failsafeTimeout);
             isReading = true;
-        }, 100);
+            isStarting = false;
+            btn.classList.add('active');
+            btn.innerHTML = '<i class="fas fa-stop me-1"></i>Stop';
+            highlightCurrentPage();
+        };
+
+        utterance.onend = () => {
+            clearTimeout(failsafeTimeout);
+            isReading = false;
+            isStarting = false;
+            btn.classList.remove('active');
+            btn.innerHTML = '<i class="fas fa-volume-up me-1"></i>Read Aloud';
+            removeHighlight();
+        };
+
+        utterance.onerror = (event) => {
+            clearTimeout(failsafeTimeout);
+            console.error('Speech error:', event.error);
+            if (event.error !== 'interrupted') {
+                alert('An error occurred during speech synthesis: ' + event.error);
+            }
+            isReading = false;
+            isStarting = false;
+            btn.classList.remove('active');
+            btn.innerHTML = '<i class="fas fa-volume-up me-1"></i>Read Aloud';
+            removeHighlight();
+        };
+
+        speechSynthesis.speak(utterance);
     }
-    
+
+
     document.getElementById('readAloudBtn').addEventListener('click', toggleReadAloud);
-    
-    // Initialize on page load
-    document.addEventListener('DOMContentLoaded', initFlipbook);
+
+    // Preload voices and warm up the speech synthesis engine
+    function warmUpSpeechSynthesis() {
+        return new Promise((resolve) => {
+            let voices = speechSynthesis.getVoices();
+            if (voices.length) {
+                resolve(voices);
+                return;
+            }
+            // Create a silent utterance to kickstart the engine
+            const starter = new SpeechSynthesisUtterance('');
+            starter.volume = 0;
+            speechSynthesis.speak(starter);
+
+            speechSynthesis.onvoiceschanged = () => {
+                voices = speechSynthesis.getVoices();
+                resolve(voices);
+            };
+
+            // Fallback timeout
+            setTimeout(() => resolve(speechSynthesis.getVoices()), 1500);
+        });
+    }
+
+
+    document.addEventListener('DOMContentLoaded', () => {
+        initFlipbook();
+        warmUpSpeechSynthesis().then(voices => {
+            console.log('Voices loaded:', voices.length);
+        });
+    });
+
+    // Replace previous loadVoices with the more robust warmUp function
+    const loadVoices = warmUpSpeechSynthesis;
 
 </script>
 {% endblock %}

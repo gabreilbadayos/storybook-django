@@ -5,15 +5,16 @@
 
 {% block content %}
 <!-- Hero Section -->
-<section class="hero-section text-white">
-    <div class="container position-relative">
+<section class="hero-section">
+    <div class="hero-pattern-overlay"></div>
+    <div class="container position-relative" style="z-index: 3;">
         <div class="row align-items-center">
             <div class="col-lg-6">
-                <h1 class="display-3 fw-bold mb-3">
+                <h1 class="display-3 fw-bold mb-3 text-hero">
                     <i class="fas fa-magic me-3"></i>
                     Welcome to Magic Storyland!
                 </h1>
-                <p class="lead mb-4 fs-4">
+                <p class="lead mb-4 fs-4 text-hero">
                     Embark on magical adventures with interactive flipbooks, fun read-aloud features, and special moral lessons!
                 </p>
                 <div class="d-flex flex-wrap gap-3">
@@ -26,8 +27,10 @@
                 </div>
             </div>
             <div class="col-lg-6 text-center mt-5 mt-lg-0">
-                <div class="hero-illustration">
-                    <i class="fas fa-hat-wizard"></i>
+                <div class="hero-illustration-wrapper">
+                    <div class="hero-illustration">
+                        <i class="fas fa-hat-wizard"></i>
+                    </div>
                 </div>
                 <div class="mt-4">
                     <span class="badge bg-light text-dark fs-6 me-2">✨ New Stories</span>

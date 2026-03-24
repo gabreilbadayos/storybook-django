@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: storybook
+    env: python
+    pythonVersion: "3.11"
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn story_book.wsgi:application"
+    envVars:
+      - key: DEBUG
+        value: "False"
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: storybook_db
+          property: connectionString
+
+databases:
+  - name: storybook_db
+    databaseName: storybook_db
+    user: storybook_user

@@ -1,6 +1,8 @@
 # Django and core dependencies
 Django>=4.2,<5.0
 gunicorn>=21.0.0
+dj-database-url>=2.0.0
+psycopg2-binary>=2.9.0
 
 # PDF processing
 PyPDF2>=3.0.0
