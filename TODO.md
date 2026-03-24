@@ -1,29 +1,27 @@
-# Deployment TODO - Story Book Django App to GitHub + Render
+# Render 500 Error Fix - Storybook Django
 
-## [ ] 1. Fix Admin 404 Error
-- Add `LOGIN_REDIRECT_URL = '/admin/'` to `story_book/settings.py`
-- Test locally: `python manage.py runserver`, login at /admin/
+## Current Status
+✅ Deployed to https://storybook-django.onrender.com  
+❌ 500 error: `No directory at: /opt/render/project/src/staticfiles/`
 
-## [x] 2. Git Status Checked
-- Modified: settings.py, storybook_app/urls.py, views.py, story_viewer.html  
-- Untracked: templates/registration/profile.html
+## Root Causes
+1. **collectstatic failed** - staticfiles dir missing  
+2. **gunicorn port** - render.yaml overrides Procfile ($PORT needed)
+3. **Django 500** - Static middleware crashes
 
-## [ ] 3. Commit Changes
-```bash
-git add .
-git commit -m "Fix admin login 404 + app improvements"
-git push origin main
+## Fix Plan (4 steps)
+```
+- [ ] 1. render.yaml - Fix startCommand: gunicorn --bind 0.0.0.0:$PORT
+- [ ] 2. build.sh - mkdir staticfiles + collectstatic --noinput
+- [ ] 3. git commit/push origin main (auto-redeploy)
+- [ ] 4. ✅ Test site loads + check Render logs
 ```
 
-## [ ] 4. Render Deployment
-- Ensure Render service linked to GitHub repo
-- Render auto-deploys on push
-- Set env vars: SECRET_KEY, DATABASE_URL (Render Postgres)
-- Run migrations on Render
+## Expected Result
+```
+Static files: 200+
+gunicorn[INFO]: Listening at: http://0.0.0.0:PORT
+Site: https://storybook-django.onrender.com ✅
+```
 
-## [ ] 5. Verify Deploy
-- Check Render logs
-- Test /admin/ login
-- Test story viewer, create story
-
-**Next step: Fix settings.py**
+**Next**: Edit render.yaml (Step 1)
