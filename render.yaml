@@ -4,7 +4,7 @@ services:
     env: python
     pythonVersion: "3.11"
     buildCommand: "./build.sh"
-    startCommand: "gunicorn story_book.wsgi:application"
+    startCommand: "gunicorn story_book.wsgi:application --bind 0.0.0.0:$PORT"
     envVars:
       - key: DEBUG
         value: "False"

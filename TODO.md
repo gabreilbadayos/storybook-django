@@ -1,27 +1,12 @@
-# Render 500 Error Fix - Storybook Django
+# TODO: Fix Render "No open HTTP ports detected" error
 
-## Current Status
-✅ Deployed to https://storybook-django.onrender.com  
-❌ 500 error: `No directory at: /opt/render/project/src/staticfiles/`
+## Plan Steps:
+- [x] Update render.yaml startCommand with --bind 0.0.0.0:$PORT
+- [ ] Update storybook_project/settings.py: ALLOWED_HOSTS='*', enable STATICFILES_STORAGE, fix DATABASES for DATABASE_URL (partial: dj_database_url import added)
+- [ ] Confirm story_book/wsgi.py exists and correct (confirmed OK)
+- [ ] Create/update .env.example for Render vars
+- [ ] git checkout -b blackboxai/fix-render-port (done)
+- [ ] git add/commit/push changes
+- [ ] Create PR via gh pr create
 
-## Root Causes
-1. **collectstatic failed** - staticfiles dir missing  
-2. **gunicorn port** - render.yaml overrides Procfile ($PORT needed)
-3. **Django 500** - Static middleware crashes
-
-## Fix Plan (4 steps)
-```
-- [ ] 1. render.yaml - Fix startCommand: gunicorn --bind 0.0.0.0:$PORT
-- [ ] 2. build.sh - mkdir staticfiles + collectstatic --noinput
-- [ ] 3. git commit/push origin main (auto-redeploy)
-- [ ] 4. ✅ Test site loads + check Render logs
-```
-
-## Expected Result
-```
-Static files: 200+
-gunicorn[INFO]: Listening at: http://0.0.0.0:PORT
-Site: https://storybook-django.onrender.com ✅
-```
-
-**Next**: Edit render.yaml (Step 1)
+Current progress tracked here.
