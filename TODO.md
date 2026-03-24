@@ -1,30 +1,27 @@
 # PythonAnywhere Deployment TODO
 
-Updated: 2024 - PA deployment preparation complete
+## [x] Project Setup (Local)
+- [x] Git push to `blackboxai/fix-render-port`
+- [x] settings.py production config (Whitenoise, security)
+- [x] settings_sqlite.py for PA free account
+- [x] .env.example, DEPLOY_PYTHONANYWHERE.md
 
-## Code Preparation ✅
-- [x] `.env.example` updated with PA vars
-- [x] `DEPLOY_PYTHONANYWHERE.md` created with complete step-by-step guide
-- [ ] `storybook_project/settings.py` - review ALLOWED_HOSTS=env('ALLOWED_HOSTS', '*.pythonanywhere.com')
-- [ ] Move legacy files: render.yaml, Procfile.railway, railway.json → legacy/
+## [x] PythonAnywhere Setup
+- [x] Clone repo: `git clone https://github.com/gabreil/storybook.git ~/storybook`
+- [x] Virtualenv: `mkvirtualenv --python=/usr/bin/python3.10 storybook`
+- [x] Install deps: `pip install -r requirements.txt`
+- [x] Upload db.sqlite3 via Files tab
+- [x] Migrate: `python manage.py migrate`
+- [x] Superuser: `python manage.py createsuperuser`
+- [x] Collectstatic: `python manage.py collectstatic --noinput`
 
-## Local Pre-Deployment Tests (Run these)
-```
-python manage.py check --deploy
-python manage.py collectstatic --dry-run --noinput
-```
+## [ ] Fix Logout Redirect
+- [ ] Edit `storybook_project/settings.py`: Add `LOGOUT_REDIRECT_URL = '/'`
+- [ ] git add/commit/push
+- [ ] PA: `cd ~/storybook && git pull`
+- [ ] Reload web app: `touch /var/www/gabreil_pythonanywhere_com_wsgi.py`
 
-## PythonAnywhere Steps (Follow DEPLOY_PYTHONANYWHERE.md)
-1. [ ] Create PA account
-2. [ ] Git clone to ~/storybook
-3. [ ] Setup virtualenv & pip install
-4. [ ] Configure web app & WSGI
-5. [ ] Set env vars (SECRET_KEY, ALLOWED_HOSTS)
-6. [ ] `migrate`, `collectstatic`, reload
-7. [ ] Test site & admin
-
-**Your system is now PA-ready!** Use `DEPLOY_PYTHONANYWHERE.md` guide. Provide PA username if you want me to customize further.
-
-## Next (if needed)
-- Settings.py tweaks
-- Legacy file cleanup
+## [ ] Test
+- [ ] Login/logout → home page (not admin)
+- [ ] Story viewer, flipbook works
+- [ ] Night mode, animations
